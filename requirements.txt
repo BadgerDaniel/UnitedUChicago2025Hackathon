@@ -12,6 +12,7 @@ langchain-google-genai==2.1.5
 langchain-mcp-adapters==0.1.7
 langgraph==0.4.8
 notebook==7.4.3
+openai==1.86.0
 openmeteo-requests==1.5.0
 pip-chill==1.0.3
 requests-cache==1.2.1
