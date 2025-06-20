@@ -1,10 +1,42 @@
 import asyncio
 import sqlite3
 import os
+import time
+import pandas as pd
+import glob
+from datetime import datetime
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.firefox.options import Options
+from selenium.common.exceptions import TimeoutException
 
 clients = []
 
 oil_db_path = os.path.join(os.path.dirname(__file__), '..', 'MCP_ds', 'oil_prices.db')
+
+# --- Trends Scraping Configuration ---
+cwd = os.getcwd()
+dependencies_dir = os.path.join(cwd, "dependencies")
+download_dir = os.path.join(cwd, "mcp_project", "downloads")
+os.makedirs(download_dir, exist_ok=True)
+
+driver_path = os.path.join(dependencies_dir, "geckodriver.exe")
+service_log_path = os.path.join(dependencies_dir, "geckodriver.log")
+firefox_path = os.path.join(dependencies_dir, 'FF_Portable', 'App', 'Firefox64', 'firefox.exe')
+
+# --- Available DMA Targets ---
+DMA_TARGETS = [
+    {"dma_code": 524, "dma_name": "Atlanta (ATL)"},
+    {"dma_code": 803, "dma_name": "Los Angeles (LAX)"},
+    {"dma_code": 623, "dma_name": "Dallas (DFW)"},
+    {"dma_code": 751, "dma_name": "Denver (DEN)"},
+    {"dma_code": 602, "dma_name": "Chicago (ORD)"},
+]
+
+BASE_URL = "https://trends.google.com/trending?geo={dma}&hours=24&sort=search-volume"
 
 def get_latest_oil_price(code):
     try:
@@ -24,6 +56,88 @@ def get_latest_oil_price(code):
     except Exception as e:
         print(f"DB error: {e}")
         return None, None
+
+def get_available_locations():
+    """Return list of available DMA locations for trends scraping."""
+    return [{"code": target["dma_code"], "name": target["dma_name"]} for target in DMA_TARGETS]
+
+def scrape_trends_for_location(dma_code, dma_name):
+    """Scrape Google Trends data for a specific DMA location."""
+    now = datetime.now()
+    trends_data = []
+    
+    # Clean the download directory before starting
+    for f in os.listdir(download_dir):
+        try:
+            os.remove(os.path.join(download_dir, f))
+        except:
+            pass  # Skip files that can't be removed
+    
+    # --- Selenium Setup ---
+    firefox_options = Options()
+    firefox_options.binary_location = firefox_path
+    firefox_options.add_argument('--headless')
+    firefox_options.set_preference("browser.download.folderList", 2)
+    firefox_options.set_preference("browser.download.dir", os.path.abspath(download_dir))
+    firefox_options.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv")
+    
+    firefox_service = FirefoxService(executable_path=driver_path, log_output=service_log_path)
+    driver = webdriver.Firefox(service=firefox_service, options=firefox_options)
+    
+    try:
+        url = BASE_URL.format(dma=dma_code)
+        print(f"\n📡 Processing DMA: {dma_name}")
+        driver.get(url)
+
+        time.sleep(5)
+        driver.refresh()
+        time.sleep(10)
+        
+        export_button_xpath = "//button[descendant::span[contains(text(), 'Export')]]"
+        export_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, export_button_xpath)))
+        driver.execute_script("arguments[0].click();", export_button)
+        time.sleep(2)
+
+        download_csv_xpath = "/html/body/c-wiz/div/div[5]/div[1]/c-wiz/div/div[1]/div[3]/div[2]/div[2]/div/div[2]/div/div/ul/li[1]"
+        download_csv_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, download_csv_xpath)))
+        driver.execute_script("arguments[0].click();", download_csv_button)
+        time.sleep(5)
+        
+        list_of_files = glob.glob(os.path.join(download_dir, '*.csv'))
+        if not list_of_files:
+            return {"error": f"No CSV file found for {dma_name}"}
+
+        latest_file = max(list_of_files, key=os.path.getctime)
+        
+        # --- Data Cleaning and Processing ---
+        df = pd.read_csv(latest_file, skiprows=1)
+        for index, row in df.iterrows():
+            trend_topic = row.iloc[0] 
+            trends_data.append({
+                "dma_code": dma_code,
+                "dma_name": dma_name,
+                "trend": trend_topic,
+                "run_time": now.strftime("%Y-%m-%d %H:%M")
+            })
+        
+        # Rename for logical archiving
+        new_filename = f"{dma_name.replace(' ', '_')}_{now.strftime('%Y%m%d')}.csv"
+        new_filepath = os.path.join(download_dir, new_filename)
+        os.rename(latest_file, new_filepath)
+        print(f"✅ Processed and renamed to {new_filename}")
+        
+        return {
+            "success": True,
+            "location": dma_name,
+            "trends_count": len(trends_data),
+            "trends": trends_data,
+            "timestamp": now.strftime("%Y-%m-%d %H:%M")
+        }
+        
+    except Exception as e:
+        return {"error": f"Failed to process {dma_name}: {str(e)}"}
+    finally:
+        driver.quit()
 
 async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
@@ -99,6 +213,47 @@ async def handle_mcp(message, writer):
             response = f"#$#oil-price-result :error=missing_code\n"
             writer.write(response.encode())
             await writer.drain()
+    
+    elif package == "get-available-locations":
+        # Return list of available DMA locations
+        locations = get_available_locations()
+        locations_str = " ".join([f":code={loc['code']} :name=\"{loc['name']}\"" for loc in locations])
+        response = f"#$#available-locations {locations_str}\n"
+        writer.write(response.encode())
+        await writer.drain()
+    
+    elif package == "scrape-trends":
+        # Parse params for dma_code
+        dma_code = None
+        dma_name = None
+        pairs = params_str.strip().split(" ")
+        for pair in pairs:
+            if pair.startswith(":dma_code="):
+                dma_code = pair.split("=", 1)[1]
+            elif pair.startswith(":dma_name="):
+                dma_name = pair.split("=", 1)[1].strip('"')
+        
+        if dma_code and dma_name:
+            print(f"🔥 Starting trends scrape for {dma_name} (DMA: {dma_code})")
+            result = scrape_trends_for_location(int(dma_code), dma_name)
+            
+            if "error" in result:
+                response = f"#$#trends-result :error=\"{result['error']}\"\n"
+            else:
+                # Send the trends data
+                trends_str = ""
+                for trend in result["trends"]:
+                    trends_str += f" :dma_code={trend['dma_code']} :dma_name=\"{trend['dma_name']}\" :trend=\"{trend['trend']}\" :run_time=\"{trend['run_time']}\""
+                
+                response = f"#$#trends-result :success=true :location=\"{result['location']}\" :trends_count={result['trends_count']} :timestamp=\"{result['timestamp']}\"{trends_str}\n"
+            
+            writer.write(response.encode())
+            await writer.drain()
+        else:
+            response = f"#$#trends-result :error=missing_dma_code_or_name\n"
+            writer.write(response.encode())
+            await writer.drain()
+    
     else:
         print(f"❓ Unrecognized MCP package: {package} | Params: {params_str}")
 
