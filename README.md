@@ -1,1 +1,0 @@
-# UnitedUChicago2025Hackathon
