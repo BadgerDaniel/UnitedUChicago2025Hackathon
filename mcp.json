@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "playwright-generic": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "enabled": false
+    },
+    "playwright-trends": {
+      "port": 8001,
+      "command": "${workspaceFolder}/.venv/Scripts/playwright-trends-server.exe",
+      "args": [],
+      "enabled": true,
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    }
+  }
+} 
