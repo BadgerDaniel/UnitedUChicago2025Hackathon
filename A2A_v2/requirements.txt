@@ -1,0 +1,31 @@
+# Core A2A and LangGraph dependencies
+google-a2a>=0.1.0
+langchain-openai>=0.1.0
+langchain-core>=0.2.0
+langgraph>=0.1.0
+langchain-mcp-adapters>=0.1.0
+
+# MCP Server dependencies
+mcp>=1.0.0
+fastapi>=0.100.0
+uvicorn>=0.20.0
+
+# Real API integrations
+httpx>=0.25.0      # For async HTTP requests (NWS Weather API)
+requests>=2.31.0   # For sync HTTP requests (Ticketmaster API)
+python-dotenv>=1.0.0  # For environment variable management
+
+# Google Trends scraping
+beautifulsoup4>=4.12.0  # For parsing HTML from Google Trends
+pandas>=2.0.0           # For data processing and CSV export
+
+# Data processing
+pydantic>=2.0.0
+python-dateutil>=2.8.0
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# Optional: If you want to add more sophisticated location handling
+# geopy>=2.3.0
