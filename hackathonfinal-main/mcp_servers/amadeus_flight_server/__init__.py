@@ -1,0 +1,1 @@
+# Amadeus Flight MCP Server

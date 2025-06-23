@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@chanmeng666/google-news-server": "^1.0.0"
+  }
+}

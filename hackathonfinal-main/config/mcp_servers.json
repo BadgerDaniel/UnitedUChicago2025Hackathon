@@ -1,0 +1,58 @@
+{
+  "servers": {
+    "terminal_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.terminal_server.terminal_server"],
+      "env": {},
+      "description": "Provides terminal/command execution capabilities"
+    },
+    "fetch_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.fetch_server.fetch_server_stdio"],
+      "env": {},
+      "description": "Fetches and converts web content"
+    },
+    "live_events_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.live_events_server.live_events_server_stdio"],
+      "env": {},
+      "description": "Searches for live events via Ticketmaster API"
+    },
+    "playwright_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.playwright_server.playwright_server_stdio"],
+      "env": {},
+      "description": "Browser automation for screenshots and web interactions"
+    },
+    "aviation_weather_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.aviation_weather_server.aviation_weather_server_stdio"],
+      "env": {},
+      "description": "Provides aviation weather data (METARs, TAFs, PIREPs)"
+    },
+    "imf_server": {
+      "command": "node",
+      "args": ["mcp_servers/imf_server/imf_server_stdio.js"],
+      "env": {},
+      "description": "Provides International Monetary Fund economic data"
+    },
+    "google_news_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.google_news_server.google_news_server_stdio"],
+      "env": {},
+      "description": "Searches Google News for articles"
+    },
+    "amadeus_flight_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.amadeus_flight_server.amadeus_flight_server_stdio"],
+      "env": {},
+      "description": "Provides flight pricing and route intelligence via Amadeus API"
+    },
+    "flight_sql_server": {
+      "command": "python3",
+      "args": ["-m", "mcp_servers.flight_sql_server.flight_sql_server_stdio"],
+      "env": {},
+      "description": "Provides historical flight pricing and weather analysis via DuckDB"
+    }
+  }
+}

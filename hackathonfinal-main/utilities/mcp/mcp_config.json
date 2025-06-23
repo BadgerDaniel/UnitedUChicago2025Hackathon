@@ -1,0 +1,106 @@
+{
+    "mcpServers": {
+        "terminal": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/terminal_server",
+                "run", 
+                "python",
+                "terminal_server.py"
+            ]
+        },
+        "fetch": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/fetch_server",
+                "run", 
+                "python",
+                "fetch_server_stdio.py"
+            ]
+        },
+        "live_events": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/live_events_server",
+                "run", 
+                "python",
+                "live_events_server_stdio.py"
+            ]
+        },
+        "playwright": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/playwright_server",
+                "run", 
+                "python",
+                "playwright_server_stdio.py"
+            ]
+        },
+        "aviation_weather": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/aviation_weather_server",
+                "run", 
+                "python",
+                "aviation_weather_server_stdio.py"
+            ]
+        },
+        "imf_data": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "run",
+                "--with",
+                "imf-data-mcp",
+                "python",
+                "-m",
+                "imf_data_mcp"
+            ]
+        },
+        "google_news": {
+            "command": "node",
+            "args": [
+                "/Users/u404027/Desktop/multiagentmcp/node_modules/@chanmeng666/google-news-server/dist/index.js"
+            ],
+            "env": {
+                "SERP_API_KEY": "${SERP_API_KEY}"
+            }
+        },
+        "amadeus_flight": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/amadeus_flight_server",
+                "run", 
+                "python",
+                "amadeus_flight_server_stdio.py"
+            ],
+            "env": {
+                "AMADEUS_API_KEY": "${AMADEUS_API_KEY}",
+                "AMADEUS_API_SECRET": "${AMADEUS_API_SECRET}"
+            }
+        },
+        "duffel_flight": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/duffel_flight_server",
+                "run", 
+                "python",
+                "duffel_flight_server_stdio.py"
+            ],
+            "env": {
+                "DUFFEL_API_KEY": "${DUFFEL_API_KEY}"
+            }
+        },
+        "flight_sql": {
+            "command": "/Users/u404027/.local/bin/uv",
+            "args": [
+                "--directory", "/Users/u404027/Desktop/multiagentmcp/mcp_servers/flight_sql_server",
+                "run", 
+                "python",
+                "flight_sql_server_stdio.py"
+            ],
+            "env": {
+                "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
+            }
+        }
+    }
+}

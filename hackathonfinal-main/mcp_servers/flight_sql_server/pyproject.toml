@@ -1,0 +1,20 @@
+[project]
+name = "flight-sql-server"
+version = "0.1.0"
+description = "MCP server for historical flight pricing and weather analysis via DuckDB"
+
+dependencies = [
+    "mcp",
+    "duckdb",
+    "duckdb-engine",
+    "langchain",
+    "langchain-community",
+    "langchain-google-genai",
+    "langgraph",
+    "httpx",
+    "python-dotenv",
+    "sqlalchemy"
+]
+
+[tool.uv]
+dev-dependencies = []

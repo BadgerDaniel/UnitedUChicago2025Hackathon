@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Routing Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .routing-message {
+            background: #ffc107;
+            color: #333;
+            font-style: italic;
+        }
+        .assistant-message {
+            background: #f0f0f0;
+        }
+        .input-area {
+            margin-top: 20px;
+        }
+        input {
+            width: 70%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Smart Routing Demo</h1>
+    <div class="chat-container" id="chat"></div>
+    <div class="input-area">
+        <input type="text" id="input" placeholder="Try: 'What flights from Chicago to Denver?'" />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // Agent patterns for smart routing
+        const agentPatterns = [
+            {
+                agent: 'FlightIntelligenceAgent',
+                icon: '✈️',
+                patterns: [/flight|fly|route|airline|airport|chicago|denver|ord|lhr/i],
+                reason: 'Searching flight databases'
+            },
+            {
+                agent: 'AviationWeatherAgent',
+                icon: '☁️',
+                patterns: [/weather|metar|taf|wind|storm|rain|snow|temperature/i],
+                reason: 'Checking weather conditions'
+            },
+            {
+                agent: 'LiveEventsAgent',
+                icon: '⚡',
+                patterns: [/event|concert|festival|conference|sports|happening/i],
+                reason: 'Finding relevant events'
+            },
+            {
+                agent: 'GoogleNewsAgent',
+                icon: '📰',
+                patterns: [/news|latest|announcement|update|united airlines/i],
+                reason: 'Searching news articles'
+            },
+            {
+                agent: 'EconomicIndicatorsAgent',
+                icon: '📊',
+                patterns: [/economic|gdp|inflation|market|finance|stock/i],
+                reason: 'Analyzing economic data'
+            }
+        ];
+
+        let routingMessageId = null;
+
+        function predictAgents(query) {
+            const predictions = [];
+            
+            // Always include Orchestrator first
+            predictions.push({
+                agent: 'OrchestratorAgent',
+                icon: '🧠',
+                reason: 'Analyzing request',
+                confidence: 1
+            });
+            
+            // Check each agent's patterns
+            for (const agentPattern of agentPatterns) {
+                for (const pattern of agentPattern.patterns) {
+                    if (pattern.test(query)) {
+                        predictions.push({
+                            agent: agentPattern.agent,
+                            icon: agentPattern.icon,
+                            reason: agentPattern.reason,
+                            confidence: 0.8
+                        });
+                        break;
+                    }
+                }
+            }
+            
+            return predictions;
+        }
+
+        function addMessage(type, content, isTemporary = false) {
+            const chat = document.getElementById('chat');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = content;
+            if (isTemporary) {
+                messageDiv.id = 'routing-message';
+            }
+            chat.appendChild(messageDiv);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function updateRoutingMessage(content) {
+            const existing = document.getElementById('routing-message');
+            if (existing) {
+                existing.textContent = content;
+            } else {
+                addMessage('routing', content, true);
+            }
+        }
+
+        function removeRoutingMessage() {
+            const existing = document.getElementById('routing-message');
+            if (existing) {
+                existing.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('input');
+            const query = input.value.trim();
+            if (!query) return;
+
+            // Add user message
+            addMessage('user', query);
+            input.value = '';
+
+            // Predict agents
+            const predictions = predictAgents(query);
+            
+            // Show routing messages
+            updateRoutingMessage('🧠 Orchestrator analyzing your request...');
+            
+            let agentIndex = 1;
+            const interval = setInterval(() => {
+                if (agentIndex < predictions.length) {
+                    const pred = predictions[agentIndex];
+                    updateRoutingMessage(
+                        `${pred.icon} Routing to ${pred.agent.replace('Agent', '')}: ${pred.reason}...`
+                    );
+                    agentIndex++;
+                } else {
+                    clearInterval(interval);
+                    updateRoutingMessage('✨ Preparing response...');
+                    
+                    // Simulate final response
+                    setTimeout(() => {
+                        removeRoutingMessage();
+                        
+                        // Generate appropriate response based on query
+                        let response = '';
+                        if (/flight|chicago|denver/i.test(query)) {
+                            response = 'Found 12 flights from Chicago (ORD) to Denver (DEN) tomorrow. Prices range from $189-$542. Morning flights have better availability.';
+                        } else if (/weather/i.test(query)) {
+                            response = 'Denver weather tomorrow: Partly cloudy, high 72°F, low 48°F. Light winds from the west at 5-10 mph. Good flying conditions expected.';
+                        } else if (/event/i.test(query)) {
+                            response = 'Major events in Chicago next week: Tech Conference at McCormick Place (Mon-Wed), Cubs vs Cardinals at Wrigley (Fri-Sun).';
+                        } else if (/news/i.test(query)) {
+                            response = 'Latest United Airlines news: Announced new direct routes to Europe, expanding fleet with 50 new aircraft, Q3 earnings beat expectations.';
+                        } else {
+                            response = 'I\'ve analyzed your request using our multi-agent system. ' + 
+                                      `Consulted ${predictions.length - 1} specialized agents to provide you with comprehensive information.`;
+                        }
+                        
+                        addMessage('assistant', response);
+                    }, 1000);
+                }
+            }, 1500);
+        }
+
+        // Allow Enter key to send
+        document.getElementById('input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
