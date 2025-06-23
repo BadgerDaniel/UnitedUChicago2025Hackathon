@@ -5,7 +5,7 @@ data/
 test.ipynb
 test.csv
 t2s.ipynb
-data_processing.py
 mcp_server.ipynb
 text-2-sql.py
 static/.venv
+data.ipynb

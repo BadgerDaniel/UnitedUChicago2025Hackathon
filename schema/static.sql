@@ -12,10 +12,10 @@ CREATE TABLE nearest_airport (
 
 CREATE TABLE route (
     id BIGINT NOT NULL PRIMARY KEY,
-    departure_airport_id BIGINT NOT NULL,
-    destination_airport_id BIGINT NOT NULL,
-    CONSTRAINT fk_dep_id FOREIGN KEY (departure_airport_id) REFERENCES nearest_airport(id),
-    CONSTRAINT fk_des_id FOREIGN KEY (destination_airport_id) REFERENCES nearest_airport(id)
+    depar_airport_id BIGINT NOT NULL,
+    desti_airport_id BIGINT NOT NULL,
+    CONSTRAINT fk_dep_id FOREIGN KEY (depar_airport_id) REFERENCES nearest_airport(id),
+    CONSTRAINT fk_des_id FOREIGN KEY (desti_airport_id) REFERENCES nearest_airport(id)
 );
 
 CREATE TABLE weather (
