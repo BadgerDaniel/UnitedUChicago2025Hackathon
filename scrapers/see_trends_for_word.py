@@ -98,12 +98,12 @@ def select_metro_resolution(driver):
         metro_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, metro_option_xpath)))
         driver.execute_script("arguments[0].click();", metro_option)
         
-        print("✅ Metro resolution selected.")
+        print(" Metro resolution selected.")
         take_screenshot(driver, "after_metro_option_selected")
         time.sleep(7) # Wait for the graph to update
         
     except Exception as e:
-        print(f"⚠ Error selecting Metro resolution: {e}")
+        print(f"[ERROR] Error selecting Metro resolution: {e}")
         take_screenshot(driver, "metro_selection_error")
     finally:
         # If something went wrong, try to click the backdrop to close any open menus
@@ -150,13 +150,13 @@ else:
     else:
         date_range = time_ranges.get(custom_time, "now 1-d")
 
-print(f"\n📅 Using time range: {date_range}\n")
+print(f"\n Using time range: {date_range}\n")
 
 base_url = f"https://trends.google.com/trends/explore?date={date_range}&geo=US&q={{}}&hl=en"
 
 for keyword in keywords:
     url = base_url.format(keyword.replace(" ", "%20"))
-    print(f"🌐 Opening URL: {url}")
+    print(f" Opening URL: {url}")
     driver.get(url)
     time.sleep(5)
     driver.refresh()
@@ -182,7 +182,7 @@ for keyword in keywords:
                 time.sleep(37)
                 continue
 
-            print(f"🟢 Found {len(export_buttons)} export buttons for '{keyword}', clicking...")
+            print(f" Found {len(export_buttons)} export buttons for '{keyword}', clicking...")
 
             for button in export_buttons:
                 try:
@@ -197,12 +197,12 @@ for keyword in keywords:
             break
 
         except TimeoutException:
-            print(f"❌ Timeout: Couldn't find export buttons for '{keyword}' (Attempt {attempts+1}/{max_attempts})")
+            print(f" Timeout: Couldn't find export buttons for '{keyword}' (Attempt {attempts+1}/{max_attempts})")
             take_screenshot(driver, f"export_button_timeout_for_{keyword}")
             attempts += 1
             time.sleep(5)
 
-    print(f"⏭ Finished attempting for '{keyword}'. Moving on...\n")
+    print(f"Finished attempting for '{keyword}'. Moving on...\n")
 # BLOCK 3: File organization and cleanup
 
 rename_latest_files(keywords[-1])
@@ -220,9 +220,9 @@ for file in glob.glob(os.path.join(download_dir, f"*{today_str}.csv")):
     files_moved += 1
 
 if files_moved:
-    print(f"📦 Moved {files_moved} files to: {destination_folder}")
+    print(f"Moved {files_moved} files to: {destination_folder}")
 else:
-    print("📂 No files matched today’s date pattern.")
+    print("No files matched today’s date pattern.")
 
 # Cleanup any empty leftover folders
 for folder in os.listdir(download_dir):
